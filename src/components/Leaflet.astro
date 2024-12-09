@@ -1,0 +1,81 @@
+---
+import astroLogo from '../assets/astro.svg';
+
+export interface Props {
+  latitude: string
+  longitude: string
+  zoom: string
+  /** the DOM ID of a <div> element */
+  container: string
+  /** https://leafletjs.com/reference.html#tilelayer */
+  tileLayer: string
+  /** Most tile servers require attribution. */
+  attribution: string
+  containerstyle?: string
+  testImage?: string
+}
+
+const { latitude, longitude, zoom, container, tileLayer, attribution, containerstyle = "height: 61.8vh", testImage } = Astro.props
+---
+
+<leaflet-map
+  data-latitude={latitude}
+  data-longitude={longitude}
+  data-zoom={zoom}
+  data-container={container}
+  data-tiles={tileLayer}
+  data-attribution={attribution}
+  data-containerstyle={containerstyle}
+>
+<div id={container} style={containerstyle}></div>
+
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css"
+/>
+
+<script>
+import "leaflet/dist/leaflet"
+import "leaflet-toolbar/dist/leaflet.toolbar"
+import "leaflet-toolbar/dist/leaflet.toolbar.min.css"
+import "leaflet-distortableimage-updated/dist/leaflet.distortableimage"
+import "leaflet-distortableimage-updated/dist/leaflet.distortableimage.css"
+import "leaflet/dist/leaflet.css"
+import "@geoman-io/leaflet-geoman-free";
+
+class LeafletMap extends HTMLElement {
+    constructor() {
+        super()
+
+        const latlng = [Number(this.dataset.latitude), Number(this.dataset.longitude)]
+
+        var map = L.map(this.dataset.container, { pmIgnore: false }).setView(latlng, Number(this.dataset.zoom))
+        L.tileLayer(
+            this.dataset.tiles,
+            {attribution: this.dataset.attribution}
+        ).addTo(map)
+
+
+        map.whenReady(function() {
+            let img = L.distortableImageOverlay("/img/astro.svg", {
+                selected: true,
+            }).addTo(map);
+        });
+
+        map.on("pm:create", (e) => {
+            e.layer.options.pmIgnore = false;
+            L.PM.reInitLayer(e.layer);
+        });
+
+        // add Leaflet-Geoman controls
+        map.pm.addControls({  
+            position: 'topleft',  
+            drawCircleMarker: false,
+        }); 
+
+    }
+
+}
+
+window.customElements.define("leaflet-map", LeafletMap);
+</script>
