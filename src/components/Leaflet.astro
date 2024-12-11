@@ -35,7 +35,7 @@ const { latitude, longitude, zoom, container, tileLayer, attribution, containers
 />
 
 <script>
-import "leaflet/dist/leaflet"
+import L from "leaflet"
 import "leaflet-toolbar/dist/leaflet.toolbar"
 import "leaflet-toolbar/dist/leaflet.toolbar.min.css"
 import "leaflet-distortableimage-updated/dist/leaflet.distortableimage"
@@ -49,17 +49,23 @@ class LeafletMap extends HTMLElement {
 
         const latlng = [Number(this.dataset.latitude), Number(this.dataset.longitude)]
 
-        var map = L.map(this.dataset.container, { pmIgnore: false }).setView(latlng, Number(this.dataset.zoom))
+        const map = L.map(this.dataset.container, { pmIgnore: false }).setView(latlng, Number(this.dataset.zoom))
         L.tileLayer(
             this.dataset.tiles,
             {attribution: this.dataset.attribution}
         ).addTo(map)
-
+        this.map = map;
 
         map.whenReady(function() {
-            let img = L.distortableImageOverlay("/img/europe_1500.jpg", {
-                selected: true,
+            const img = L.distortableImageOverlay("/img/europe_1500.jpg", {
+                selected: false,
+                editable: false,
             }).addTo(map);
+            setTimeout(() => {
+                img.editable = true;
+                img.editing.enable();
+                console.log(img.editing)
+            }, 5000);
         });
 
         map.on("pm:create", (e) => {
@@ -71,8 +77,7 @@ class LeafletMap extends HTMLElement {
         map.pm.addControls({  
             position: 'topleft',  
             drawCircleMarker: false,
-        }); 
-
+        });
     }
 
 }
