@@ -1,0 +1,51 @@
+---
+import background from '@/assets/background.svg';
+import Leaflet from './Leaflet.astro';
+import LayerList from './LayerList';
+---
+
+<div id="container">
+    <img id="background" src={background.src} alt="" fetchpriority="high" />
+    <main class="flex flex-row justify-center">
+        <section class="p-2" style="width:20vw;">
+            <h1 class="text-xl font-medium text-stone-800">Cartographer 🗺️</h1>
+            <p class="text-sm text-stone-600">
+                Stretch images. <br/>
+                Draw polygons. <br/>
+                Export GeoJSON.
+            </p>
+            <hr class="width-full border-t-2 border-stone-200 m-2" />
+            <div id="layers">
+                <LayerList client:load />
+            </div>
+        </section>
+        <section id="map-section">
+            <Leaflet
+                container="leafletmap"
+                latitude=47.795595
+                longitude=17.259191
+                zoom="3.2"
+                tileLayer="https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap"
+                containerstyle="width: 80vw; height: 100vh;"
+            />
+        </section>
+    </main>
+</div>
+
+<style>
+    #background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        filter: blur(100px);
+    }
+
+    #container {
+        font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+        height: 100%;
+    }
+</style>

@@ -1,6 +1,4 @@
 ---
-import astroLogo from '../assets/astro.svg';
-
 export interface Props {
   latitude: string
   longitude: string
@@ -43,6 +41,8 @@ import "leaflet-distortableimage-updated/dist/leaflet.distortableimage.css"
 import "leaflet/dist/leaflet.css"
 import "@geoman-io/leaflet-geoman-free";
 
+import { getState } from '@/store/state'
+
 class LeafletMap extends HTMLElement {
     constructor() {
         super()
@@ -56,6 +56,41 @@ class LeafletMap extends HTMLElement {
         ).addTo(map)
         this.map = map;
 
+        map.on("pm:create", (e) => {
+            e.layer.options.pmIgnore = false;
+            L.PM.reInitLayer(e.layer);
+        });
+
+        // add Leaflet-Geoman controls
+        map.pm.addControls({
+            position: 'topleft',
+            drawCircleMarker: false,
+        });
+
+        map.on("pm:create", (e) => {
+            // store image layers
+            getState().add({
+                id: e.layer._leaflet_id,
+                name: "Polygon " + e.layer._leaflet_id,
+                points: e.layer.getLatLngs()[0],
+            });
+            e.layer.on("pm:edit", (e) => {
+                console.log("pm:edit", e.layer.getLatLngs());
+            });
+        });
+
+        map.on("layeradd", (e) => {
+            if (e.layer._image !== undefined) {
+                // store image layers
+                getState().add({
+                    id: e.layer._leaflet_id,
+                    name: "Image " + e.layer._leaflet_id,
+                    points: [],
+                });
+            }
+        });
+
+        // add test image
         map.whenReady(function() {
             const img = L.distortableImageOverlay("/img/europe_1500.jpg", {
                 selected: false,
@@ -68,18 +103,19 @@ class LeafletMap extends HTMLElement {
             }, 5000);
         });
 
-        map.on("pm:create", (e) => {
-            e.layer.options.pmIgnore = false;
-            L.PM.reInitLayer(e.layer);
-        });
+        // for debugging
+        window.map = this;
 
-        // add Leaflet-Geoman controls
-        map.pm.addControls({
-            position: 'topleft',
-            drawCircleMarker: false,
-        });
+        this.findLayers = function() {
+            const layers = L.PM.Utils.findLayers(map);
+            for (let layer of layers) {
+                if (layer.getLatLngs !== undefined) {
+                    console.log("points", layer.getLatLngs());
+                }
+            }
+            return layers;
+        }
     }
-
 }
 
 window.customElements.define("leaflet-map", LeafletMap);
