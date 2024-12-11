@@ -6,11 +6,17 @@ export default function LayerList(): JSX.Element {
     return (
         <div>
             <p className="text-xs text-stone-400">Layers</p>
-            {layers.map((layer) =>
-                <div key={layer.id} >
+            {Array.from(layers.entries()).map(([id, layer]) =>
+                <div key={id} className="p-1">
                     <button className="text-red-400 text-xs hover:text-white hover:bg-red-400">X</button>
                     <span className="text-sm text-stone-700"> {layer.name} </span>
-                    <span className="text-xs text-stone-400">&middot; {layer.points.length} points</span>
+                    {layer.data.kind === "Polygon" &&
+                        <span className="text-xs text-stone-400">({layer.data.points.length})</span>
+                    || layer.data.kind === "Image" &&
+                        <span className="text-xs text-stone-400">{layer.data.url}</span>
+                    ||
+                        <span className="text-xs text-stone-400">?</span>
+                    }
                 </div>
             )}
         </div>

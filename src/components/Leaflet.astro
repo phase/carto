@@ -41,7 +41,7 @@ import "leaflet-distortableimage-updated/dist/leaflet.distortableimage.css"
 import "leaflet/dist/leaflet.css"
 import "@geoman-io/leaflet-geoman-free";
 
-import { getState } from '@/store/state'
+import { type LayerData, getState } from '@/store/state'
 
 class LeafletMap extends HTMLElement {
     constructor() {
@@ -67,25 +67,52 @@ class LeafletMap extends HTMLElement {
             drawCircleMarker: false,
         });
 
-        map.on("pm:create", (e) => {
-            // store image layers
-            getState().add({
-                id: e.layer._leaflet_id,
-                name: "Polygon " + e.layer._leaflet_id,
-                points: e.layer.getLatLngs()[0],
+        function toLayerData(layer: any): LayerData {
+            if (layer.getLatLngs !== undefined) {
+                return {
+                    kind: "Polygon",
+                    points: layer.getLatLngs()[0],
+                };
+            } else {
+                return {
+                    kind: "Uknown",
+                };
+            }
+        }
+
+        function handleLayerEvent(e: any) {
+            const id: string = e.layer._leaflet_id;
+            const layer: LayerData = toLayerData(e.layer);
+
+            // store polygon layers
+            getState().replace(id, {
+                id: id,
+                name: e.shape + " " + id,
+                data: layer,
             });
+        }
+
+        map.on("pm:create", (e) => {
+            console.log("pm:create", e);
+            handleLayerEvent(e);
+
             e.layer.on("pm:edit", (e) => {
-                console.log("pm:edit", e.layer.getLatLngs());
+                handleLayerEvent(e);
             });
         });
 
         map.on("layeradd", (e) => {
             if (e.layer._image !== undefined) {
+                const id: string = e.layer._leaflet_id;
                 // store image layers
+                console.log("layeradd image", id, e);
                 getState().add({
-                    id: e.layer._leaflet_id,
-                    name: "Image " + e.layer._leaflet_id,
-                    points: [],
+                    id: id,
+                    name: "Image " + id,
+                    data: {
+                        kind: "Image",
+                        url: e.layer._url,
+                    },
                 });
             }
         });
