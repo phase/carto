@@ -13,6 +13,7 @@ interface PolygonLayer {
 interface ImageLayer {
     kind: "Image"
     url: string
+    frozen: boolean
 }
 
 interface UnknownLayer {
@@ -21,13 +22,13 @@ interface UnknownLayer {
 
 export type LayerData = PolygonLayer | ImageLayer | UnknownLayer
 
-interface Layer {
+export interface Layer {
     id: string
     name: string
     data: LayerData
 }
 
-interface MapState {
+export interface MapState {
   layers: Map<string, Layer>
   add: (layer: Layer) => void
   replace: (id: string, layer: Layer) => void

@@ -41,7 +41,7 @@ import "leaflet-distortableimage-updated/dist/leaflet.distortableimage.css"
 import "leaflet/dist/leaflet.css"
 import "@geoman-io/leaflet-geoman-free";
 
-import { type LayerData, getState } from '@/store/state'
+import { type LayerData, getState, subscribe } from '@/store/state'
 
 class LeafletMap extends HTMLElement {
     constructor() {
@@ -112,8 +112,28 @@ class LeafletMap extends HTMLElement {
                     data: {
                         kind: "Image",
                         url: e.layer._url,
+                        frozen: !e.layer.editable,
                     },
                 });
+            }
+        });
+
+
+        subscribe((state) => {
+            for (let layer of state.layers.values()) {
+                if (layer.data.kind === "Image") {
+                    const img = L.PM.Utils.findLayers(map).find((l) => l._leaflet_id === layer.id);
+                    if (img === undefined) {
+                        continue;
+                    }
+
+                    img.editable = !layer.data.frozen;
+                    if (img.editable) {
+                        img.editing.enable();
+                    } else {
+                        img.editing.disable();
+                    }
+                }
             }
         });
 
@@ -123,14 +143,8 @@ class LeafletMap extends HTMLElement {
                 selected: false,
                 editable: false,
             }).addTo(map);
-            setTimeout(() => {
-                img.editable = true;
-                img.editing.enable();
-                console.log(img.editing)
-            }, 5000);
         });
-
-        // for debugging
+                // for debugging
         window.map = this;
 
         this.findLayers = function() {
