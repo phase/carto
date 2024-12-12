@@ -103,9 +103,8 @@ class LeafletMap extends HTMLElement {
 
         map.on("layeradd", (e) => {
             if (e.layer._image !== undefined) {
-                const id: string = e.layer._leaflet_id;
+                const id: string = e.layer._leaflet_id+"";
                 // store image layers
-                console.log("layeradd image", id, e);
                 getState().add({
                     id: id,
                     name: "Image " + id,
@@ -115,9 +114,44 @@ class LeafletMap extends HTMLElement {
                         frozen: !e.layer.editable,
                     },
                 });
+            } else if (e.layer.feature !== undefined) {
+                // this is GeoJSON
+                const id: string = e.layer._leaflet_id+"";
+                const feature = e.layer.feature;
+                let name = "Feature " + id;
+                if (feature.properties !== undefined && feature.properties.name !== undefined) {
+                    name = feature.properties.name;
+                }
+                const parent: string = Object.values(e.layer._eventParents)[0];
+                console.log("layeradd geojson", id);
+                getState().add({
+                    id: id,
+                    name: name,
+                    parent: parent,
+                    data: {
+                        kind: "Unknown",
+                        // feature: e.layer.feature,
+                    },
+                });
+                console.log("layers: ", getState().layers);
+            } else if (e.layer._layers !== undefined) {
+                // this is a group
+                const id: string = e.layer._leaflet_id + "";
+                const children = Object.keys(e.layer._layers);
+                console.log("layeradd ", id, e.layer);
+
+                getState().add({
+                    id: id,
+                    name: "Group " + id,
+                    data: {
+                        kind: "Group",
+                        children: children,
+                    },
+                });
+            } else {
+                console.log("layeradd unknown", e.layer);
             }
         });
-
 
         subscribe((state) => {
             for (let layer of state.layers.values()) {

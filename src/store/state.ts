@@ -20,11 +20,17 @@ interface UnknownLayer {
     kind: "Uknown"
 }
 
-export type LayerData = PolygonLayer | ImageLayer | UnknownLayer
+interface GroupLayer {
+    kind: "Group"
+    children: string[]
+}
+
+export type LayerData = PolygonLayer | ImageLayer | GroupLayer | UnknownLayer
 
 export interface Layer {
     id: string
     name: string
+    parent?: string
     data: LayerData
 }
 

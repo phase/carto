@@ -25,11 +25,26 @@ function dropHandler(e: DragEvent) {
             if (item.kind === "file") {
                 const file = item.getAsFile();
                 if (file !== null) {
-                    console.log(`uploaded`, file);
-                    const img = L.distortableImageOverlay(URL.createObjectURL(file), {
-                        selected: false,
-                        editable: false,
-                    }).addTo(map);
+                    if (file.name.endsWith(".jpg")
+                        || file.name.endsWith(".jpeg")
+                        || file.name.endsWith(".png")
+                        || file.name.endsWith(".gif")
+                        || file.name.endsWith(".svg")
+                        || file.name.endsWith(".webp")
+                        || file.name.endsWith(".bmp")
+                    ) {
+                       const img = L.distortableImageOverlay(URL.createObjectURL(file), {
+                            selected: false,
+                            editable: false,
+                        }).addTo(map);
+                    } else if (file.name.endsWith(".geojson") || file.name.endsWith(".json")) {
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            const jsonText = reader.result;
+                            L.geoJSON(JSON.parse(jsonText)).addTo(map);
+                        }
+                        reader.readAsText(file);
+                    }
                 }
             }
         });
@@ -53,7 +68,7 @@ container.ondrop = dropHandler;
 
 <div id="container">
     <main class="flex flex-row justify-center font-mono bg-amber-50">
-        <section class="p-2" style="width:20vw;">
+        <section class="p-2 overflow-scroll" style="width:20vw;height:100vh;">
             <h1 class="text-xl font-medium text-stone-800">Cartographer 🗺️</h1>
             <p class="text-sm text-stone-600 p-1">
                 Stretch images. <br/>
