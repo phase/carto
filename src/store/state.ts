@@ -32,12 +32,14 @@ export interface MapState {
   layers: Map<string, Layer>
   add: (layer: Layer) => void
   replace: (id: string, layer: Layer) => void
+  remove: (id: string) => void
 }
 
 export const mapState = create<MapState>()((set) => ({
   layers: new Map(),
   add: (layer) => set((state) => ({ layers: new Map([...state.layers, [layer.id, layer]]) })),
   replace: (id, layer) => set((state) => ({ layers: new Map([...state.layers, [id, layer]]) })),
+  remove: (id) => set((state) => ({ layers: new Map([...state.layers].filter(([key]) => key !== id)) })),
 }))
 
 // export store functions for Astro components to call

@@ -1,8 +1,55 @@
 ---
-import background from '@/assets/background.svg';
 import Leaflet from './Leaflet.astro';
 import LayerList from './LayerList';
 ---
+
+<script>
+import L from "leaflet"
+
+function dropHandler(e: DragEvent) {
+    e.preventDefault();
+
+    if (e.dataTransfer === null) {
+        return;
+    }
+
+    const map = document.getElementsByTagName("leaflet-map")[0].map;
+    if (map === undefined) {
+        return;
+    }
+
+    if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        [...e.dataTransfer.items].forEach((item, i) => {
+            // If dropped items aren't files, reject them
+            if (item.kind === "file") {
+                const file = item.getAsFile();
+                if (file !== null) {
+                    console.log(`uploaded`, file);
+                    const img = L.distortableImageOverlay(URL.createObjectURL(file), {
+                        selected: false,
+                        editable: false,
+                    }).addTo(map);
+                }
+            }
+        });
+    } else {
+        // Use DataTransfer interface to access the file(s)
+        [...e.dataTransfer.files].forEach((file, i) => {
+            //TODO
+            console.log(`… file[${i}].name = ${file.name}`);
+        });
+    }
+}
+
+function dragOverHandler(e: DragEvent) {
+    e.preventDefault();
+}
+
+const container = document.getElementById("container")!!
+container.ondragover = dragOverHandler;
+container.ondrop = dropHandler;
+</script>
 
 <div id="container">
     <main class="flex flex-row justify-center font-mono bg-amber-50">
@@ -15,7 +62,7 @@ import LayerList from './LayerList';
             </p>
             <hr class="width-full border-t-2 border-stone-400 m-2" />
             <div id="layers">
-                <LayerList client:load />
+                <LayerList client:only />
             </div>
         </section>
         <section id="map-section">
