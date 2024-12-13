@@ -16,11 +16,11 @@ function removeLayer(id: string) {
 }
 
 function toggleFrozen(layer: Layer) {
+    console.log("toggleFrozen", layer);
     getState().replace(layer.id, {
         ...layer,
         data: {
             ...layer.data,
-            kind: "Image",
             frozen: !layer.data.frozen,
         }
     })
@@ -32,7 +32,7 @@ export default function LayerList(): JSX.Element {
         <div>
             <p className="text-xs text-stone-400">LAYERS</p>
             {Array.from(layers.entries()).filter(([id, layer]) => layer.parent === undefined).map(([id, layer]) =>
-                <div key={id} className="px-2">
+                <div key={id} className="px-2 py-1">
                     <button className="py-auto text-red-400 hover:text-white hover:bg-red-400"
                      style={{fontSize: "0.6rem"}}
                      onClick={() => removeLayer(id)}>X</button>
@@ -43,16 +43,16 @@ export default function LayerList(): JSX.Element {
                         <span>
                             <button className="text-xs text-stone-400 hover:bg-stone-700" onClick={() => toggleFrozen(layer)}>{layer.data.frozen ? "🔒" : "✏️"}</button>
                             <br/>
-                            <span className="text-xs text-stone-400"> {layer.data.url}</span>
+                            <span style={{fontSize: "0.7rem"}} className="pl-2 text-xs text-stone-400">{layer.data.url}</span>
                         </span>
                     || layer.data.kind === "Group" &&
                         <div className="pl-2">
                             {Array.from(layer.data.children.entries()).map(([key, child]) => {
                                 if (layers.get(child) === undefined) {
-                                    return <></>;
+                                    return <span key={key}></span>
                                 } else {
-                                    return <span key={key}>
-                                        <button className="py-auto text-red-400 hover:text-white hover:bg-red-400"
+                                    return <span key={key} className="leading-tight">
+                                        <button className="text-red-400 hover:text-white hover:bg-red-400"
                                             style={{fontSize: "0.5rem"}}
                                             onClick={() => removeLayer(child)}>X</button>
                                         <span style={{fontSize: "0.7rem"}} className="pl-2 text-stone-600">{layers.get(child)!.name}</span>

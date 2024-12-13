@@ -137,26 +137,30 @@ class LeafletMap extends HTMLElement {
             } else if (e.layer._layers !== undefined) {
                 // this is a group
                 const id: string = e.layer._leaflet_id + "";
-                const children = Object.keys(e.layer._layers);
-                console.log("layeradd ", id, e.layer);
+                const childrenV = Object.values(e.layer._layers);
 
-                getState().add({
-                    id: id,
-                    name: "Group " + id,
-                    data: {
-                        kind: "Group",
-                        children: children,
-                    },
-                });
+                const hasFeatures = childrenV.filter((child: any) => child.feature !== undefined).length > 0;
+                if (hasFeatures) {
+                    const childrenK = Object.keys(e.layer._layers);
+                    console.log("layeradd group", id, e.layer);
+                    getState().add({
+                        id: id,
+                        name: "Group " + id,
+                        data: {
+                            kind: "Group",
+                            children: childrenK,
+                        },
+                    });
+                }
             } else {
-                console.log("layeradd unknown", e.layer);
+                // console.log("layeradd unknown", e.layer);
             }
         });
 
         subscribe((state) => {
             for (let layer of state.layers.values()) {
                 if (layer.data.kind === "Image") {
-                    const img = L.PM.Utils.findLayers(map).find((l) => l._leaflet_id === layer.id);
+                    const img = L.PM.Utils.findLayers(map).find((l) => l._leaflet_id == layer.id);
                     if (img === undefined) {
                         continue;
                     }
