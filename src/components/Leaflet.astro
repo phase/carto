@@ -1,201 +1,225 @@
 ---
 export interface Props {
-  latitude: string
-  longitude: string
-  zoom: string
-  /** the DOM ID of a <div> element */
-  container: string
-  /** https://leafletjs.com/reference.html#tilelayer */
-  tileLayer: string
-  /** Most tile servers require attribution. */
-  attribution: string
-  containerstyle?: string
-  testImage?: string
+    latitude: string;
+    longitude: string;
+    zoom: string;
+    /** the DOM ID of a <div> element */
+    container: string;
+    /** https://leafletjs.com/reference.html#tilelayer */
+    tileLayer: string;
+    /** Most tile servers require attribution. */
+    attribution: string;
+    containerstyle?: string;
+    testImage?: string;
 }
 
-const { latitude, longitude, zoom, container, tileLayer, attribution, containerstyle = "height: 61.8vh", testImage } = Astro.props
+const {
+    latitude,
+    longitude,
+    zoom,
+    container,
+    tileLayer,
+    attribution,
+    containerstyle = "height: 61.8vh",
+    testImage,
+} = Astro.props;
 ---
 
 <leaflet-map
-  data-latitude={latitude}
-  data-longitude={longitude}
-  data-zoom={zoom}
-  data-container={container}
-  data-tiles={tileLayer}
-  data-attribution={attribution}
-  data-containerstyle={containerstyle}
+    data-latitude={latitude}
+    data-longitude={longitude}
+    data-zoom={zoom}
+    data-container={container}
+    data-tiles={tileLayer}
+    data-attribution={attribution}
+    data-containerstyle={containerstyle}
 >
-<div id={container} style={containerstyle}></div>
+    <div id={container} style={containerstyle}></div>
 
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css"
-/>
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css"
+    />
 
-<script>
-import L from "leaflet"
-import "leaflet-toolbar/dist/leaflet.toolbar"
-import "leaflet-toolbar/dist/leaflet.toolbar.min.css"
-import "leaflet-distortableimage-updated/dist/leaflet.distortableimage"
-import "leaflet-distortableimage-updated/dist/leaflet.distortableimage.css"
-import "leaflet/dist/leaflet.css"
-import "@geoman-io/leaflet-geoman-free";
+    <script>
+        import L from "leaflet";
+        import "leaflet-toolbar/dist/leaflet.toolbar";
+        import "leaflet-toolbar/dist/leaflet.toolbar.min.css";
+        import "leaflet-distortableimage-updated/dist/leaflet.distortableimage";
+        import "leaflet-distortableimage-updated/dist/leaflet.distortableimage.css";
+        import "leaflet/dist/leaflet.css";
+        import "@geoman-io/leaflet-geoman-free";
 
-import { type LayerData, getState, subscribe } from '@/store/state'
+        import { type LayerData, getState, subscribe } from "@/store/state";
 
-class LeafletMap extends HTMLElement {
-    constructor() {
-        super()
+        class LeafletMap extends HTMLElement {
+            constructor() {
+                super();
 
-        const latlng = [Number(this.dataset.latitude), Number(this.dataset.longitude)]
+                const latlng = [
+                    Number(this.dataset.latitude),
+                    Number(this.dataset.longitude),
+                ];
 
-        const map = L.map(this.dataset.container, { pmIgnore: false }).setView(latlng, Number(this.dataset.zoom))
-        L.tileLayer(
-            this.dataset.tiles,
-            {attribution: this.dataset.attribution}
-        ).addTo(map)
-        this.map = map;
+                const map = L.map(this.dataset.container, {
+                    pmIgnore: false,
+                }).setView(latlng, Number(this.dataset.zoom));
+                L.tileLayer(this.dataset.tiles, {
+                    attribution: this.dataset.attribution,
+                }).addTo(map);
+                this.map = map;
 
-        map.on("pm:create", (e) => {
-            e.layer.options.pmIgnore = false;
-            L.PM.reInitLayer(e.layer);
-        });
-
-        // add Leaflet-Geoman controls
-        map.pm.addControls({
-            position: 'topleft',
-            drawCircleMarker: false,
-        });
-
-        function toLayerData(layer: any): LayerData {
-            if (layer.getLatLngs !== undefined) {
-                return {
-                    kind: "Polygon",
-                    points: layer.getLatLngs()[0],
-                };
-            } else {
-                return {
-                    kind: "Uknown",
-                };
-            }
-        }
-
-        function handleLayerEvent(e: any) {
-            const id: string = e.layer._leaflet_id;
-            const layer: LayerData = toLayerData(e.layer);
-
-            // store polygon layers
-            getState().replace(id, {
-                id: id,
-                name: e.shape + " " + id,
-                data: layer,
-            });
-        }
-
-        map.on("pm:create", (e) => {
-            console.log("pm:create", e);
-            handleLayerEvent(e);
-
-            e.layer.on("pm:edit", (e) => {
-                handleLayerEvent(e);
-            });
-        });
-
-        map.on("layeradd", (e) => {
-            if (e.layer._image !== undefined) {
-                const id: string = e.layer._leaflet_id+"";
-                // store image layers
-                getState().add({
-                    id: id,
-                    name: "Image " + id,
-                    data: {
-                        kind: "Image",
-                        url: e.layer._url,
-                        frozen: !e.layer.editable,
-                    },
+                map.on("pm:create", (e) => {
+                    e.layer.options.pmIgnore = false;
+                    L.PM.reInitLayer(e.layer);
                 });
-            } else if (e.layer.feature !== undefined) {
-                // this is GeoJSON
-                const id: string = e.layer._leaflet_id+"";
-                const feature = e.layer.feature;
-                let name = "Feature " + id;
-                if (feature.properties !== undefined && feature.properties.name !== undefined) {
-                    name = feature.properties.name;
+
+                // add Leaflet-Geoman controls
+                map.pm.addControls({
+                    position: "topleft",
+                    drawCircleMarker: false,
+                });
+
+                function toLayerData(layer: any): LayerData {
+                    if (layer._latlngs !== undefined) {
+                        return {
+                            kind: "Polygon",
+                            points: layer._latlngs[0],
+                        };
+                    } else {
+                        return {
+                            kind: "Uknown",
+                        };
+                    }
                 }
-                const parent: string = Object.values(e.layer._eventParents)[0];
-                console.log("layeradd geojson", id);
-                getState().add({
-                    id: id,
-                    name: name,
-                    parent: parent,
-                    data: {
-                        kind: "Unknown",
-                        // feature: e.layer.feature,
-                    },
-                });
-                console.log("layers: ", getState().layers);
-            } else if (e.layer._layers !== undefined) {
-                // this is a group
-                const id: string = e.layer._leaflet_id + "";
-                const childrenV = Object.values(e.layer._layers);
 
-                const hasFeatures = childrenV.filter((child: any) => child.feature !== undefined).length > 0;
-                if (hasFeatures) {
-                    const childrenK = Object.keys(e.layer._layers);
-                    console.log("layeradd group", id, e.layer);
-                    getState().add({
+                function handleLayerEvent(e: any) {
+                    const id: string = e.layer._leaflet_id;
+                    const layer: LayerData = toLayerData(e.layer);
+
+                    // store polygon layers
+                    getState().replace(id, {
                         id: id,
-                        name: "Group " + id,
-                        data: {
-                            kind: "Group",
-                            children: childrenK,
-                        },
+                        name: e.shape + " " + id,
+                        data: layer,
                     });
                 }
-            } else {
-                // console.log("layeradd unknown", e.layer);
-            }
-        });
 
-        subscribe((state) => {
-            for (let layer of state.layers.values()) {
-                if (layer.data.kind === "Image") {
-                    const img = L.PM.Utils.findLayers(map).find((l) => l._leaflet_id == layer.id);
-                    if (img === undefined) {
-                        continue;
-                    }
+                map.on("pm:create", (e) => {
+                    console.log("pm:create", e);
+                    handleLayerEvent(e);
 
-                    img.editable = !layer.data.frozen;
-                    if (img.editable) {
-                        img.editing.enable();
+                    e.layer.on("pm:edit", (e) => {
+                        handleLayerEvent(e);
+                    });
+                });
+
+                map.on("layeradd", (e) => {
+                    if (e.layer._image !== undefined) {
+                        const id: string = e.layer._leaflet_id + "";
+                        // store image layers
+                        getState().add({
+                            id: id,
+                            name: "Image " + id,
+                            data: {
+                                kind: "Image",
+                                url: e.layer._url,
+                                frozen: !e.layer.editable,
+                            },
+                        });
+                    } else if (e.layer.feature !== undefined) {
+                        // this is GeoJSON
+                        const id: string = e.layer._leaflet_id + "";
+                        const feature = e.layer.feature;
+                        let name = "Feature " + id;
+                        if (
+                            feature.properties !== undefined &&
+                            feature.properties.name !== undefined
+                        ) {
+                            name = feature.properties.name;
+                        }
+                        const parent: string = Object.values(
+                            e.layer._eventParents,
+                        )[0];
+                        const layer: LayerData = toLayerData(e.layer);
+                        console.log("layeradd geojson", id);
+                        getState().add({
+                            id: id,
+                            name: name,
+                            parent: parent,
+                            data: layer,
+                        });
+                    } else if (e.layer._layers !== undefined) {
+                        // this is a group
+                        const id: string = e.layer._leaflet_id + "";
+                        const childrenV = Object.values(e.layer._layers);
+
+                        const hasFeatures =
+                            childrenV.filter(
+                                (child: any) => child.feature !== undefined,
+                            ).length > 0;
+                        if (hasFeatures) {
+                            const childrenK = Object.keys(e.layer._layers);
+                            console.log("layeradd group", id, e.layer);
+                            getState().add({
+                                id: id,
+                                name: "Group " + id,
+                                data: {
+                                    kind: "Group",
+                                    children: childrenK,
+                                },
+                            });
+                        }
                     } else {
-                        img.editing.disable();
+                        // console.log("layeradd unknown", e.layer);
                     }
-                }
-            }
-        });
+                });
 
-        // add test image
-        map.whenReady(function() {
-            const img = L.distortableImageOverlay("/img/europe_1500.jpg", {
-                selected: false,
-                editable: false,
-            }).addTo(map);
-        });
+                subscribe((state) => {
+                    for (let layer of state.layers.values()) {
+                        if (layer.data.kind === "Image") {
+                            const img = L.PM.Utils.findLayers(map).find(
+                                (l) => l._leaflet_id == layer.id,
+                            );
+                            if (img === undefined) {
+                                continue;
+                            }
+
+                            img.editable = !layer.data.frozen;
+                            if (img.editable) {
+                                img.editing.enable();
+                            } else {
+                                img.editing.disable();
+                            }
+                        }
+                    }
+                });
+
+                // add test image
+                map.whenReady(function () {
+                    const img = L.distortableImageOverlay(
+                        "/img/europe_1500.jpg",
+                        {
+                            selected: false,
+                            editable: false,
+                        },
+                    ).addTo(map);
+                });
                 // for debugging
-        window.map = this;
+                window.map = this;
 
-        this.findLayers = function() {
-            const layers = L.PM.Utils.findLayers(map);
-            for (let layer of layers) {
-                if (layer.getLatLngs !== undefined) {
-                    console.log("points", layer.getLatLngs());
-                }
+                this.findLayers = function () {
+                    const layers = L.PM.Utils.findLayers(map);
+                    for (let layer of layers) {
+                        if (layer.getLatLngs !== undefined) {
+                            console.log("points", layer.getLatLngs());
+                        }
+                    }
+                    return layers;
+                };
             }
-            return layers;
         }
-    }
-}
 
-window.customElements.define("leaflet-map", LeafletMap);
-</script>
+        window.customElements.define("leaflet-map", LeafletMap);
+    </script>
+</leaflet-map>

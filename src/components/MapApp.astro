@@ -1,69 +1,76 @@
 ---
-import Leaflet from './Leaflet.astro';
-import LayerList from './LayerList';
+import Leaflet from "./Leaflet.astro";
+import Tree from "./Tree";
 ---
 
 <script>
-import L from "leaflet"
+    import L from "leaflet";
 
-function dropHandler(e: DragEvent) {
-    e.preventDefault();
+    function dropHandler(e: DragEvent) {
+        e.preventDefault();
 
-    if (e.dataTransfer === null) {
-        return;
-    }
+        if (e.dataTransfer === null) {
+            return;
+        }
 
-    const map = document.getElementsByTagName("leaflet-map")[0].map;
-    if (map === undefined) {
-        return;
-    }
+        const map = document.getElementsByTagName("leaflet-map")[0].map;
+        if (map === undefined) {
+            return;
+        }
 
-    if (e.dataTransfer.items) {
-        // Use DataTransferItemList interface to access the file(s)
-        [...e.dataTransfer.items].forEach((item, i) => {
-            // If dropped items aren't files, reject them
-            if (item.kind === "file") {
-                const file = item.getAsFile();
-                if (file !== null) {
-                    if (file.name.endsWith(".jpg")
-                        || file.name.endsWith(".jpeg")
-                        || file.name.endsWith(".png")
-                        || file.name.endsWith(".gif")
-                        || file.name.endsWith(".svg")
-                        || file.name.endsWith(".webp")
-                        || file.name.endsWith(".bmp")
-                    ) {
-                       const img = L.distortableImageOverlay(URL.createObjectURL(file), {
-                            selected: false,
-                            editable: false,
-                        }).addTo(map);
-                    } else if (file.name.endsWith(".geojson") || file.name.endsWith(".json")) {
-                        const reader = new FileReader();
-                        reader.onload = function() {
-                            const jsonText = reader.result;
-                            L.geoJSON(JSON.parse(jsonText)).addTo(map);
+        if (e.dataTransfer.items) {
+            // Use DataTransferItemList interface to access the file(s)
+            [...e.dataTransfer.items].forEach((item, i) => {
+                // If dropped items aren't files, reject them
+                if (item.kind === "file") {
+                    const file = item.getAsFile();
+                    if (file !== null) {
+                        if (
+                            file.name.endsWith(".jpg") ||
+                            file.name.endsWith(".jpeg") ||
+                            file.name.endsWith(".png") ||
+                            file.name.endsWith(".gif") ||
+                            file.name.endsWith(".svg") ||
+                            file.name.endsWith(".webp") ||
+                            file.name.endsWith(".bmp")
+                        ) {
+                            const img = L.distortableImageOverlay(
+                                URL.createObjectURL(file),
+                                {
+                                    selected: false,
+                                    editable: false,
+                                },
+                            ).addTo(map);
+                        } else if (
+                            file.name.endsWith(".geojson") ||
+                            file.name.endsWith(".json")
+                        ) {
+                            const reader = new FileReader();
+                            reader.onload = function () {
+                                const jsonText = reader.result;
+                                L.geoJSON(JSON.parse(jsonText)).addTo(map);
+                            };
+                            reader.readAsText(file);
                         }
-                        reader.readAsText(file);
                     }
                 }
-            }
-        });
-    } else {
-        // Use DataTransfer interface to access the file(s)
-        [...e.dataTransfer.files].forEach((file, i) => {
-            //TODO
-            console.log(`… file[${i}].name = ${file.name}`);
-        });
+            });
+        } else {
+            // Use DataTransfer interface to access the file(s)
+            [...e.dataTransfer.files].forEach((file, i) => {
+                //TODO
+                console.log(`… file[${i}].name = ${file.name}`);
+            });
+        }
     }
-}
 
-function dragOverHandler(e: DragEvent) {
-    e.preventDefault();
-}
+    function dragOverHandler(e: DragEvent) {
+        e.preventDefault();
+    }
 
-const container = document.getElementById("container")!!
-container.ondragover = dragOverHandler;
-container.ondrop = dropHandler;
+    const container = document.getElementById("container")!!;
+    container.ondragover = dragOverHandler;
+    container.ondrop = dropHandler;
 </script>
 
 <div id="container">
@@ -71,23 +78,23 @@ container.ondrop = dropHandler;
         <section class="p-2 overflow-scroll" style="width:20vw;height:100vh;">
             <h1 class="text-xl font-medium text-stone-800">Cartographer 🗺️</h1>
             <p class="text-sm text-stone-600 p-1">
-                Stretch images. <br/>
-                Draw polygons. <br/>
+                Stretch images. <br />
+                Draw polygons. <br />
                 Export GeoJSON.
             </p>
             <hr class="width-full border-t-2 border-stone-400 m-2" />
             <div id="layers">
-                <LayerList client:only />
+                <Tree client:only />
             </div>
         </section>
         <section id="map-section">
             <Leaflet
                 container="leafletmap"
-                latitude=47.795595
-                longitude=17.259191
+                latitude="47.795595"
+                longitude="17.259191"
                 zoom="3.2"
                 tileLayer="https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap"
+                attribution="© OpenStreetMap"
                 containerstyle="width: 80vw; height: 100vh;"
             />
         </section>
@@ -106,7 +113,8 @@ container.ondrop = dropHandler;
     }
 
     #container {
-        font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+        font-family: Inter, Roboto, "Helvetica Neue", "Arial Nova",
+            "Nimbus Sans", Arial, sans-serif;
         height: 100%;
     }
 </style>
