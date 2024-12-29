@@ -99,24 +99,24 @@ export const Tree: React.FC<TreeProps> = ({ layer, depth = 0 }) => {
   const renderIcon = (data: LayerData) => {
     switch (data.kind) {
       case "Polygon":
-        return <Hexagon className="w-4 h-4 mr-1" />;
+        return <Hexagon className="w-4 h-4 mr-1 text-neutral-200" />;
       case "Image":
         return data.frozen ? (
           <Lock
-            className="w-4 h-4 mr-1 cursor-pointer"
+            className="w-4 h-4 mr-1 cursor-pointer text-neutral-200"
             onClick={() => layer && toggleFrozen(layer)}
           />
         ) : (
           <Edit
-            className="w-4 h-4 mr-1 cursor-pointer"
+            className="w-4 h-4 mr-1 cursor-pointer text-neutral-200"
             onClick={() => layer && toggleFrozen(layer)}
           />
         );
       case "Group":
         return isOpen ? (
-          <ChevronDown className="w-4 h-4 mr-1" />
+          <ChevronDown className="w-4 h-4 mr-1 text-neutral-200" />
         ) : (
-          <ChevronRight className="w-4 h-4 mr-1" />
+          <ChevronRight className="w-4 h-4 mr-1 text-neutral-200" />
         );
       default:
         return null;
@@ -145,22 +145,27 @@ export const Tree: React.FC<TreeProps> = ({ layer, depth = 0 }) => {
           onClick={() => hasChildren && setOpen(!isOpen)}
         >
           {renderIcon(layer.data)}
-          <span className="text-sm text-stone-700">{layer.name}</span>
+          <span className="text-sm text-neutral-100">{layer.name}</span>
           {layer.data.kind === "Polygon" && (
-            <span className="text-xs text-stone-400 ml-1">
+            <span className="text-xs text-neutral-400 ml-1">
               ({layer.data.points.length})
+            </span>
+          )}
+          {hasChildren && (
+            <span className="text-xs text-neutral-400 ml-1">
+              ({layer.data.children.length})
             </span>
           )}
         </div>
         <div className="flex items-center">
           {((layer.data.kind === "Polygon" || layer.data.kind === "Group") && (
             <FileJson
-              className="w-4 h-4 mr-2 text-stone-400 hover:text-stone-700 cursor-pointer"
+              className="w-4 h-4 mr-2 text-neutral-200 hover:text-blue-200 cursor-pointer"
               onClick={() => exportLayer(layer)}
             />
           )) ||
             (layer.data.kind === "Image" && (
-              <Image className="w-4 h-4 mr-2 text-stone-400" />
+              <Image className="w-4 h-4 mr-2 text-neutral-400" />
             )) || <FileQuestion className="w-4 h-4 mr-2 text-stone-400" />}
           <X
             className="w-4 h-4 text-red-400 hover:text-red-600 cursor-pointer"
@@ -169,7 +174,7 @@ export const Tree: React.FC<TreeProps> = ({ layer, depth = 0 }) => {
         </div>
       </div>
       {layer.data.kind === "Image" && (
-        <div className="pl-6 text-xs text-stone-400">{layer.data.url}</div>
+        <div className="pl-6 text-xs text-neutral-200">{layer.data.url}</div>
       )}
       {hasChildren && (
         <animated.div
